@@ -9,9 +9,9 @@ using Fiddler;
 
 [assembly: Fiddler.RequiredVersion("2.2.8.6")]
 
-namespace TestFiddlerExtension
+namespace FiddlerExtension
 {
-    public class Violin : Fiddler.IAutoTamper, IHandleExecAction, IFiddlerExtension
+    public class HostsFiddlerExtension : Fiddler.IAutoTamper, IHandleExecAction, IFiddlerExtension
     {
         // Who
         MenuItem oMenuWho = new MenuItem("Who");
@@ -28,9 +28,9 @@ namespace TestFiddlerExtension
         MenuItem oMenuHostsSub4 = new MenuItem("Disabled");
         public string env = "Development";
 
-        public UserControl2 oUserControl;
+        public HostsTabView oHostsTabView;
 
-        public Violin() {
+        public HostsFiddlerExtension() {
             // Init Env Menu
             oMenuHostsSub1.RadioCheck = true;
             oMenuHostsSub2.RadioCheck = true;
@@ -45,7 +45,7 @@ namespace TestFiddlerExtension
             oMenuWhoSub3.RadioCheck = true;
             oMenuWhoSub1.Checked = true;
             oMenuWho.MenuItems.AddRange(new MenuItem[] { oMenuWhoSub1, oMenuWhoSub2, new MenuItem("-"), oMenuWhoSub3 });
-            oUserControl = new UserControl2();
+            oHostsTabView = new HostsTabView();
         }
 
         public void AutoTamperRequestBefore(Session oSession) {
@@ -84,37 +84,6 @@ namespace TestFiddlerExtension
             if (!String.IsNullOrEmpty(this.who)) {
                 oSession.oRequest["who"] = who;
             }
-
-            /*
-            Dictionary<string, List<string>> hostsList = new Dictionary<string, List<string>>();
-            hostsList.Add("Development", new List<string> {
-                "192.168.56.101 tieba.duowan.com",
-                "192.168.56.101 admin.tieba.duowan.com"
-            });
-            hostsList.Add("Pre-Release", new List<string> {
-                "172.19.104.157 tieba.duowan.com",
-                "172.19.104.157 admin.tieba.duowan.com"
-            });
-            hostsList.Add("Production", new List<string> {
-                "192.168.56.101 tieba.duowan.com",
-                "192.168.56.101 admin.tieba.duowan.com"
-            });
-            
-            // Override Hosts
-            if (!String.IsNullOrEmpty(env)) {
-                List<string> hosts = null;
-                bool hasValue = hostsList.TryGetValue(env, out hosts);
-                if (hasValue) {
-                    foreach (string host in hosts) {
-                        var arr = host.Split(' ');
-                        if (oSession.HostnameIs(arr[1])) {
-                            oSession["x-overridehost"] = arr[0];
-                        }
-                    }
-                }
-            }
-            */
-
         }
 
         public void AutoTamperRequestAfter(Session oSession) {}
@@ -217,7 +186,7 @@ namespace TestFiddlerExtension
             FiddlerApplication.UI.mnuRules.MenuItems.Add(oMenuWho);
 
             TabPage envTabPage = new TabPage("Hosts");
-            envTabPage.Controls.Add(this.oUserControl);
+            envTabPage.Controls.Add(this.oHostsTabView);
             FiddlerApplication.UI.tabsViews.TabPages.Add(envTabPage);
 
             // Add Session Columns

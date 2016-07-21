@@ -1,6 +1,6 @@
-﻿namespace TestFiddlerExtension
+﻿namespace FiddlerExtension
 {
-    partial class UserControl2
+    partial class HostsTabView
     {
         /// <summary> 
         /// 必需的设计器变量。
@@ -111,12 +111,12 @@
             this.label3.TabIndex = 5;
             this.label3.Text = "Production";
             // 
-            // UserControl2
+            // HostsTabView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.groupBox1);
-            this.Name = "UserControl2";
+            this.Name = "HostsTabView";
             this.Size = new System.Drawing.Size(416, 850);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

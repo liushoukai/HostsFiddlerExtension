@@ -9,11 +9,11 @@ using System.Windows.Forms;
 using System.IO;
 using Fiddler;
 
-namespace TestFiddlerExtension
+namespace FiddlerExtension
 {
-    public partial class UserControl2 : UserControl
+    public partial class HostsTabView : UserControl
     {
-        public UserControl2()
+        public HostsTabView()
         {
             InitializeComponent();
             string filePath1 = @"F:\\dev.config";
