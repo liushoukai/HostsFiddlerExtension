@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using Fiddler;
+using System.Web.Script.Serialization;
+using System.Collections;
+using System.Reflection;
+using System.ComponentModel;
 
 [assembly: Fiddler.RequiredVersion("2.2.8.6")]
 
@@ -28,9 +32,29 @@ namespace FiddlerExtension
         MenuItem oMenuHostsSub4 = new MenuItem("Disabled");
         public string env = "Development";
 
-        public HostsTabView oHostsTabView;
+        public HostsGridView oHostsGridView;
 
         public HostsFiddlerExtension() {
+                    
+            // config file path
+            string hostsConfigPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "hostsConfig.json");
+
+            // If config file not exists, create a demo config file
+            FiddlerApplication.Log.LogString(hostsConfigPath);
+            if (!File.Exists(hostsConfigPath)) {
+                FileStream fs = new FileStream(hostsConfigPath, FileMode.Create, FileAccess.Write, FileShare.Read);
+                List<HostsConfig> configs = new List<HostsConfig>();
+
+                HostsConfig config = new HostsConfig("Development", false, new Dictionary<string, string>() { { "tieba.duowan.com", "192.168.56.101" } });
+                configs.Add(config);
+
+                JavaScriptSerializer serializer = new JavaScriptSerializer();
+                string json = serializer.Serialize(configs);
+                fs.Write(Encoding.UTF8.GetBytes(json), 0, Encoding.UTF8.GetBytes(json).Length);
+                fs.Flush(true);
+                fs.Close();
+            }
+
             // Init Env Menu
             oMenuHostsSub1.RadioCheck = true;
             oMenuHostsSub2.RadioCheck = true;
@@ -45,41 +69,26 @@ namespace FiddlerExtension
             oMenuWhoSub3.RadioCheck = true;
             oMenuWhoSub1.Checked = true;
             oMenuWho.MenuItems.AddRange(new MenuItem[] { oMenuWhoSub1, oMenuWhoSub2, new MenuItem("-"), oMenuWhoSub3 });
-            oHostsTabView = new HostsTabView();
+
+            this.oHostsGridView = new HostsGridView();
         }
 
         public void AutoTamperRequestBefore(Session oSession) {
 
-            // Override Hosts
-            if (!String.IsNullOrEmpty(this.env))
-            {
-                string filePath = @"F:\\dev.config";
-
-                switch (this.env)
-                {
-                    case "Development":
-                        filePath = @"F:\\dev.config"; break;
-                    case "Pre-Release":
-                        filePath = @"F:\\pre.config"; break;
-                    case "Production":
-                        filePath = @"F:\\pro.config"; break;
-                }
-
-                StreamReader sr = new StreamReader(filePath);
-                while (!sr.EndOfStream)
-                {
-                    string line = sr.ReadLine();
-                    string ip = line.Trim().Split(' ')[0];
-                    string domain = line.Trim().Split(' ')[1];
-                    if (oSession.HostnameIs(domain))
-                    {
-                        oSession["x-overridehost"] = ip;
+            // Switch Hosts
+            BindingList<HostsConfig> list = this.oHostsGridView.configs;
+            foreach (HostsConfig hostConfig in list) {
+                if (hostConfig.Check) {
+                    foreach (var item in hostConfig.Items) {
+                        string domain = item.Key;
+                        string ip = item.Value;
+                        if (oSession.HostnameIs(domain)) {
+                            oSession["x-overridehost"] = ip;
+                        }
                     }
-                    FiddlerApplication.Log.LogString(ip + "~~" + domain);
                 }
-                sr.Close();
             }
-            
+
             // Add Custom Headers
             if (!String.IsNullOrEmpty(this.who)) {
                 oSession.oRequest["who"] = who;
@@ -185,13 +194,14 @@ namespace FiddlerExtension
             FiddlerApplication.UI.mnuRules.MenuItems.Add(oMenuHosts);
             FiddlerApplication.UI.mnuRules.MenuItems.Add(oMenuWho);
 
-            TabPage envTabPage = new TabPage("Hosts");
-            envTabPage.Controls.Add(this.oHostsTabView);
-            FiddlerApplication.UI.tabsViews.TabPages.Add(envTabPage);
+            // Add Tab
+            TabPage hostsTabPage = new TabPage("SwitchHosts");
+            hostsTabPage.Controls.Add(this.oHostsGridView);
+            FiddlerApplication.UI.tabsViews.TabPages.Add(hostsTabPage);
 
             // Add Session Columns
-            FiddlerApplication.UI.lvSessions.AddBoundColumn("Method", 3, 50, new Fiddler.getColumnStringDelegate(FillMethodColumnRequestMethod));
-            FiddlerApplication.UI.lvSessions.AddBoundColumn("HostIP", 2, 100, new Fiddler.getColumnStringDelegate(FillMethodColumnHostIP));
+            FiddlerApplication.UI.lvSessions.AddBoundColumn("Method", 1, 50, new Fiddler.getColumnStringDelegate(FillMethodColumnRequestMethod));
+            FiddlerApplication.UI.lvSessions.AddBoundColumn("HostIP", 1, 100, new Fiddler.getColumnStringDelegate(FillMethodColumnHostIP));
             FiddlerApplication.UI.lvSessions.AddBoundColumn("Who", 1, 80, new Fiddler.getColumnStringDelegate(FillMethodColumnWho));
             FiddlerApplication.UI.lvSessions.AddBoundColumn("Environment", 1, 80, new Fiddler.getColumnStringDelegate(FillMethodColumnEnv));
         }
