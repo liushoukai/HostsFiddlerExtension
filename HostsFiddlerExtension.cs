@@ -24,14 +24,6 @@ namespace FiddlerExtension
         MenuItem oMenuWhoSub3 = new MenuItem("Disabled");
         public string who = "webapp";
 
-        // Hosts
-        MenuItem oMenuHosts = new MenuItem("Hosts");
-        MenuItem oMenuHostsSub1 = new MenuItem("Development");  // Development Environment
-        MenuItem oMenuHostsSub2 = new MenuItem("Pre-Release");  // Pre-Release Environment
-        MenuItem oMenuHostsSub3 = new MenuItem("Production");   // Production  Environment
-        MenuItem oMenuHostsSub4 = new MenuItem("Disabled");
-        public string env = "Development";
-
         public HostsGridView oHostsGridView;
 
         public HostsFiddlerExtension() {
@@ -40,7 +32,7 @@ namespace FiddlerExtension
             string hostsConfigPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "hostsConfig.json");
 
             // If config file not exists, create a demo config file
-            FiddlerApplication.Log.LogString(hostsConfigPath);
+            //FiddlerApplication.Log.LogString(hostsConfigPath);
             if (!File.Exists(hostsConfigPath)) {
                 FileStream fs = new FileStream(hostsConfigPath, FileMode.Create, FileAccess.Write, FileShare.Read);
                 List<HostsConfig> configs = new List<HostsConfig>();
@@ -54,14 +46,6 @@ namespace FiddlerExtension
                 fs.Flush(true);
                 fs.Close();
             }
-
-            // Init Env Menu
-            oMenuHostsSub1.RadioCheck = true;
-            oMenuHostsSub2.RadioCheck = true;
-            oMenuHostsSub3.RadioCheck = true;
-            oMenuHostsSub4.RadioCheck = true;
-            oMenuHostsSub1.Checked = true;
-            oMenuHosts.MenuItems.AddRange(new MenuItem[] { oMenuHostsSub1, oMenuHostsSub2, oMenuHostsSub3, new MenuItem("-"), oMenuHostsSub4 });
 
             // Init Who Menu
             oMenuWhoSub1.RadioCheck = true;
@@ -143,36 +127,7 @@ namespace FiddlerExtension
             return "";
         }
 
-        public string FillMethodColumnEnv(Session oSession) {
-            switch (env) {
-                case "Development":
-                    return "Development";
-                case "Pre-Release":
-                    return "Pre-Release";
-                case "Production":
-                    return "Production";
-                default:
-                    return "";
-            }      
-        }
-
         public void OnLoad() {
-            // Event Binding for Hosts Menu
-            foreach (MenuItem son in oMenuHosts.MenuItems)
-            {
-                son.Click += (sender, e) => {
-                    MenuItem mi = sender as MenuItem;
-                    this.env = mi.Text;
-
-                    oMenuHostsSub1.Checked = false;
-                    oMenuHostsSub2.Checked = false;
-                    oMenuHostsSub3.Checked = false;
-                    oMenuHostsSub4.Checked = false;
-                    mi.Checked = true;
-
-                    FiddlerApplication.Log.LogString(env);
-                };
-            }
 
             // Event Binding for Who Menu
             foreach (MenuItem son in oMenuWho.MenuItems)
@@ -186,12 +141,10 @@ namespace FiddlerExtension
                     oMenuWhoSub3.Checked = false;
                     mi.Checked = true;
 
-                    FiddlerApplication.Log.LogString(env);
                 };
             }
 
             // Add Menus
-            FiddlerApplication.UI.mnuRules.MenuItems.Add(oMenuHosts);
             FiddlerApplication.UI.mnuRules.MenuItems.Add(oMenuWho);
 
             // Add Tab
@@ -203,7 +156,6 @@ namespace FiddlerExtension
             FiddlerApplication.UI.lvSessions.AddBoundColumn("Method", 1, 50, new Fiddler.getColumnStringDelegate(FillMethodColumnRequestMethod));
             FiddlerApplication.UI.lvSessions.AddBoundColumn("HostIP", 1, 100, new Fiddler.getColumnStringDelegate(FillMethodColumnHostIP));
             FiddlerApplication.UI.lvSessions.AddBoundColumn("Who", 1, 80, new Fiddler.getColumnStringDelegate(FillMethodColumnWho));
-            FiddlerApplication.UI.lvSessions.AddBoundColumn("Environment", 1, 80, new Fiddler.getColumnStringDelegate(FillMethodColumnEnv));
         }
 
     }
