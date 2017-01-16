@@ -14,6 +14,12 @@ the plugin used for Fiddler to switch hosts, it avoid dns caching when we direct
 1. Download dist/HostsFiddlerExtension.dll，move the file under Fiddler2/Scripts, then restart Fiddler2.
 2. Open Tools->Extensions tab，when tips "FiddlerExtension.HostsFiddlerExtension (v1.0.0.0)", the plugin loaded successfully.
 
+## Development Plan
+1. Add tab icons
+2. Add Support for comments with each host setting
+3. Add Support for switching order with config items
+4. Add Support for unicode config names
+
 ## License
 
 [![GitHub license][license-image]][license-url]
